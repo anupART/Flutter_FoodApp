@@ -1,6 +1,9 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;  // Import http package
 import 'package:foodapp/typography.dart';
 import 'package:foodapp/color.dart';
+import 'package:animated_custom_dropdown/custom_dropdown.dart';
 import 'package:intl/intl.dart';
 
 class FoodOrderDetailsPage extends StatefulWidget {
@@ -11,35 +14,32 @@ class FoodOrderDetailsPage extends StatefulWidget {
 }
 
 class _FoodOrderDetailsPageState extends State<FoodOrderDetailsPage> {
-  final List<Map<String, dynamic>> mockOrderData = [
-    {
-      "date": "2023-11-01",
-      "opt_ins": {
-        "breakfast": "Canceled",
-        "lunch": "Delivered",
-        "dinner": "Pending"
-      }
-    },
-    {
-      "date": "2023-11-02",
-      "opt_ins": {
-        "breakfast": "Delivered",
-        "lunch": "Canceled",
-        "dinner": "Delivered"
-      }
-    },
-    {
-      "date": "2023-11-03",
-      "opt_ins": {
-        "breakfast": "Pending",
-        "lunch": "Pending",
-        "dinner": "Canceled"
-      }
-    },
-  ];
-
+  List<Map<String, dynamic>> orderData = [];  // Store fetched data
+  bool isLoading = true;  // To show loading indicator while fetching data
   int _selectedMonth = DateTime.now().month;
 
+  // Function to fetch orders from an API (replace with your API endpoint)
+  Future<void> fetchOrders() async {
+    try {
+      final response = await http.get(Uri.parse('https://your-api-endpoint.com/orders'));  // Replace with your API
+      if (response.statusCode == 200) {
+        List<dynamic> data = json.decode(response.body);
+        setState(() {
+          orderData = data.map((e) => e as Map<String, dynamic>).toList();
+          isLoading = false;  // Hide loading indicator once data is fetched
+        });
+      } else {
+        throw Exception('Failed to load orders');
+      }
+    } catch (e) {
+      print('Error fetching orders: $e');
+      setState(() {
+        isLoading = false;  // Hide loading indicator on error
+      });
+    }
+  }
+
+  // Function to determine color based on order status
   Color _getStatusColor(String status) {
     switch (status) {
       case "Delivered":
@@ -53,8 +53,9 @@ class _FoodOrderDetailsPageState extends State<FoodOrderDetailsPage> {
     }
   }
 
+  // Calculate fine based on the pending status
   double _calculateMonthlyFine() {
-    return mockOrderData.fold(0, (total, order) {
+    return orderData.fold(0, (total, order) {
       double orderFine = 0;
       (order['opt_ins'] as Map).forEach((meal, status) {
         if (status == "Pending") {
@@ -63,6 +64,12 @@ class _FoodOrderDetailsPageState extends State<FoodOrderDetailsPage> {
       });
       return total + orderFine;
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchOrders();  // Fetch orders when the page is initialized
   }
 
   @override
@@ -123,40 +130,35 @@ class _FoodOrderDetailsPageState extends State<FoodOrderDetailsPage> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Sreejith K',
+                                    'Sreejith',
                                     style: FontClass.title.copyWith(
                                       fontSize: 24,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  SizedBox(height: 8),
+                                  const SizedBox(height: 8),
                                   Text(
-                                    '9496362717',
+                                    '9496232323',
                                     style: FontClass.subtitle,
                                   ),
                                   Text(
-                                    'sreejith.k@benzyinfotech.com',
+                                    'sreejith@gmail.com',
                                     style: FontClass.subtitle,
                                   ),
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
                                         'BI00526',
                                         style: FontClass.subtitle,
                                       ),
-                                      SizedBox(width: MediaQuery.of(context).size.width/1.5,),
+                                      SizedBox(width: MediaQuery.of(context).size.width / 1.5),
                                       Container(
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: 12,
-                                          vertical: 6,
-                                        ),
+                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                         decoration: BoxDecoration(
                                           color: myPrimaryColor.withOpacity(0.1),
                                           borderRadius: BorderRadius.circular(10),
                                         ),
                                         child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.end,
                                           children: [
                                             Icon(
                                               Icons.circle,
@@ -176,57 +178,33 @@ class _FoodOrderDetailsPageState extends State<FoodOrderDetailsPage> {
                                       ),
                                     ],
                                   ),
-
                                 ],
                               ),
-
                             ],
                           ),
                           SizedBox(height: 16),
-                          Container(
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.grey.shade200,
-                                  blurRadius: 5,
-                                  offset: Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
-                              child: DropdownButton<int>(
-                                value: _selectedMonth,
-                                underline: SizedBox(),
-                                isExpanded: true,
-                                dropdownColor: Colors.white,
-                                items: List.generate(12, (index) => index + 1)
-                                    .map((month) => DropdownMenuItem(
-                                  value: month,
-                                  child: Text(
-                                    ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][month - 1],
-                                    style:FontClass.subtitle
-                                  ),
-                                ))
-                                    .toList(),
-                                onChanged: (value) {
-                                  setState(() {
-                                    _selectedMonth = value!;
-                                  });
-                                },
-                              ),
-                            ),
+                          // Dropdown Section
+                          CustomDropdown(
+                            hintText: 'Select Month',
+                            items: const [
+                              'January', 'February', 'March', 'April', 'May', 'June', 'July',
+                              'August', 'September', 'October', 'November', 'December',
+                            ],
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedMonth = ([
+                                  'January', 'February', 'March', 'April', 'May', 'June', 'July',
+                                  'August', 'September', 'October', 'November', 'December'
+                                ].indexOf(value!) + 1);
+                              });
+                            },
                           ),
                         ],
                       ),
                     ),
-
                     // Order Details Section
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
+                    const Padding(
+                      padding: EdgeInsets.all(16.0),
                       child: Text(
                         'Order Details',
                         style: TextStyle(
@@ -235,20 +213,22 @@ class _FoodOrderDetailsPageState extends State<FoodOrderDetailsPage> {
                         ),
                       ),
                     ),
-                    ListView.builder(
+                    // Display orders or loading indicator
+                    isLoading
+                        ? Center(child: CircularProgressIndicator())
+                        : ListView.builder(
                       shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
-                      padding: EdgeInsets.symmetric(horizontal: 16),
-                      itemCount: mockOrderData.length,
+                      physics: const NeverScrollableScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: orderData.length,
                       itemBuilder: (context, index) {
-                        var order = mockOrderData[index];
+                        var order = orderData[index];
                         return Card(
-                          elevation: 3,
                           color: Colors.white,
-                          margin: EdgeInsets.symmetric(vertical: 8),
+                          elevation: 3,
+                          margin: const EdgeInsets.symmetric(vertical: 8),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(15),
-
                           ),
                           child: Padding(
                             padding: const EdgeInsets.all(16.0),
@@ -284,10 +264,7 @@ class _FoodOrderDetailsPageState extends State<FoodOrderDetailsPage> {
                                           ),
                                         ),
                                         Container(
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: 12,
-                                            vertical: 6,
-                                          ),
+                                          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                           decoration: BoxDecoration(
                                             color: _getStatusColor(entry.value),
                                             borderRadius: BorderRadius.circular(10),
@@ -297,68 +274,39 @@ class _FoodOrderDetailsPageState extends State<FoodOrderDetailsPage> {
                                             style: TextStyle(
                                               color: Colors.white,
                                               fontWeight: FontWeight.bold,
-                                              fontSize: 14,
                                             ),
                                           ),
                                         ),
                                       ],
                                     ),
                                   );
-                                })).toList(),
+                                }).toList()),
                               ],
                             ),
                           ),
                         );
                       },
                     ),
-
-                    // Add extra space at the bottom to prevent content
-                    // from being hidden behind the fixed card
-                    SizedBox(height: 100),
                   ],
                 ),
               ),
             ),
-
-            // Fixed Total Fine Card at the Bottom
+            // Bottom Card Section
             Positioned(
+              bottom: 0,
               left: 0,
               right: 0,
-              bottom: 0,
               child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.shade300,
-                      blurRadius: 10,
-                      offset: Offset(0, -3),
+                padding: EdgeInsets.all(16),
+                color: Colors.blueAccent,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Total Fine for Month: ${_calculateMonthlyFine().toStringAsFixed(2)}',
+                      style: TextStyle(color: Colors.white, fontSize: 18),
                     ),
                   ],
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Total Fine (Monthly):',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                          color: Colors.grey.shade800,
-                        ),
-                      ),
-                      Text(
-                        '₹${_calculateMonthlyFine()}',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                          color: Colors.red.shade700,
-                        ),
-                      ),
-                    ],
-                  ),
                 ),
               ),
             ),
