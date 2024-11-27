@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:foodapp/typography.dart';
 
-import 'color.dart';
+import '../style/color.dart';
+import '../style/typography.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

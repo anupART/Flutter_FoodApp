@@ -58,7 +58,6 @@ class User {
     this.isSatOpted,
   });
 
-  // Factory constructor for creating an empty/default User
   factory User.empty() {
     return User(
       id: 0,
