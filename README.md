@@ -1,16 +1,14 @@
-# foodapp
+# Benzy Food App
 
-A new Flutter project.
+Benzy Food is a mobile application that provides an interactive interface for managing and viewing food orders. It tracks order details such as delivery status, pending orders, and canceled orders on a monthly basis. The app fetches real-time data from an API, displaying user details along with their respective orders.
 
-## Getting Started
+Inspired by the modern and sleek design of popular apps, Benzy Food features an intuitive and user-friendly interface, making it easy for users to navigate through their orders.
 
-This project is a starting point for a Flutter application.
+Features
+Order Status Tracking: View orders categorized as "Delivered," "Pending," or "Canceled."
+Monthly View: See orders grouped by date and month.
+User Details: Fetch and display user information along with their order history.
+Interactive Design: Sleek and modern UI with responsive interactions, inspired by popular app designs.
+API Integration: Fetches order and user data dynamically from an API for real-time updates.
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+![ben](https://github.com/user-attachments/assets/7e6edc7a-e244-4578-b596-8ec3bff6af69)
